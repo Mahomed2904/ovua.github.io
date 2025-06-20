@@ -1,81 +1,71 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Smooth scrolling para links de navegação
-    document.querySelectorAll('nav a').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
+    // Lógica para alternar o tema (claro/escuro)
+    const themeToggleBtn = document.querySelector('.theme-toggle-btn');
+    const body = document.body;
 
-            const targetId = this.getAttribute('href');
-            // Checa se é um ID de seção na página ou um link externo como #login
-            if (targetId.startsWith('#')) {
-                const targetSection = document.querySelector(targetId);
+    // Verifica a preferência de tema do usuário ou um tema salvo
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        body.classList.add(savedTheme);
+        updateThemeToggleIcon(savedTheme);
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // Se não houver tema salvo, verifica a preferência do sistema
+        body.classList.add('dark-theme');
+        updateThemeToggleIcon('dark-theme');
+    } else {
+        body.classList.add('light-theme');
+        updateThemeToggleIcon('light-theme');
+    }
 
-                if (targetSection) {
-                    // Calcula a posição de rolagem, levando em conta a altura do cabeçalho fixo
-                    const headerOffset = document.querySelector('header').offsetHeight;
-                    const elementPosition = targetSection.getBoundingClientRect().top + window.pageYOffset;
-                    const offsetPosition = elementPosition - headerOffset - 20; // -20 para um pequeno padding extra
+    themeToggleBtn.addEventListener('click', () => {
+        if (body.classList.contains('light-theme')) {
+            body.classList.remove('light-theme');
+            body.classList.add('dark-theme');
+            localStorage.setItem('theme', 'dark-theme');
+            updateThemeToggleIcon('dark-theme');
+        } else {
+            body.classList.remove('dark-theme');
+            body.classList.add('light-theme');
+            localStorage.setItem('theme', 'light-theme');
+            updateThemeToggleIcon('light-theme');
+        }
+    });
 
-                    window.scrollTo({
-                        top: offsetPosition,
-                        behavior: 'smooth'
-                    });
-                } else if (targetId === '#login') {
-                    // Simula a navegação para uma página de login
-                    alert('Redirecionando para a página de Login (funcionalidade em desenvolvimento)...');
-                    // Em um cenário real, você faria: window.location.href = 'login.html';
-                }
+    function updateThemeToggleIcon(theme) {
+        const icon = themeToggleBtn.querySelector('i');
+        if (theme === 'dark-theme') {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        } else {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+        }
+    }
+
+    // Atualiza o ano no rodapé
+    const currentYearSpan = document.getElementById('current-year');
+    if (currentYearSpan) {
+        currentYearSpan.textContent = new Date().getFullYear();
+    }
+
+    // Animação do contador de membros (opcional, para tornar mais dinâmico)
+    const memberCountSpan = document.getElementById('member-count');
+    const targetCount = 250; // O número final desejado
+    const duration = 2000; // Duração da animação em ms
+    const interval = 10; // Intervalo entre cada incremento em ms
+
+    if (memberCountSpan) {
+        let currentCount = 0;
+        const increment = targetCount / (duration / interval);
+
+        const counter = setInterval(() => {
+            currentCount += increment;
+            if (currentCount >= targetCount) {
+                memberCountSpan.textContent = targetCount;
+                clearInterval(counter);
+            } else {
+                memberCountSpan.textContent = Math.floor(currentCount);
             }
-        });
-    });
-
-    // Lógica para clique nos cards de atividades
-    document.querySelectorAll('.activity-card .view-activity').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault(); // Impede o comportamento padrão do link
-            const activityId = this.getAttribute('data-activity-id');
-            // Em um cenário real, você faria:
-            // window.location.href = `activity-details.html?id=${activityId}`;
-            alert(`Você clicou para ver os detalhes da Atividade #${activityId}. Uma nova página com os detalhes seria carregada.`);
-        });
-    });
-
-    // Lógica para o botão "Ver Todas as Atividades"
-    document.querySelector('.activities-section .primary-btn').addEventListener('click', function(e) {
-        e.preventDefault(); // Impede o comportamento padrão do link
-        // Em um cenário real, você faria:
-        // window.location.href = 'activities.html';
-        alert('Você clicou para ver a lista completa de atividades. Redirecionando para a página "activities.html".');
-    });
-
-    // Animação para o contador de membros
-    const memberCountElement = document.getElementById('member-count');
-    const targetCount = 500; // O número final a ser exibido
-    const duration = 2500; // Duração da animação em milissegundos
-    const stepTime = 10; // Intervalo entre cada incremento
-
-    let currentCount = 0;
-    const increment = targetCount / (duration / stepTime);
-
-    // Usa Intersection Observer para iniciar a animação quando a seção fica visível
-    const observer = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting && memberCountElement) {
-                const timer = setInterval(() => {
-                    currentCount += increment;
-                    if (currentCount >= targetCount) {
-                        currentCount = targetCount;
-                        clearInterval(timer);
-                        memberCountElement.textContent = `${Math.floor(currentCount)}`;
-                    } else {
-                        memberCountElement.textContent = `${Math.floor(currentCount)}`;
-                    }
-                }, stepTime);
-                observer.unobserve(entry.target); // Para de observar após a animação
-            }
-        });
-    }, { threshold: 0.5 }); // A animação começa quando 50% da seção está visível
-
-    if (memberCountElement) {
-        observer.observe(memberCountElement.closest('.members-section')); // Observa a seção inteira
+        }, interval);
     }
 });
